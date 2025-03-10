@@ -418,7 +418,234 @@ fmt.Println(myRectangle) // {20 8}
 ```
 
 ### Map
-### Interface
+Map là kiểu dữ liệu với các giá trị keys tương ứng với các giá trị values. Map trong Go giống với Dictionaries trong Python hay Objects trong JavaScripts.
+#### Khởi tạo map
+```go
+var studentAge map[string]int
+```
+
+#### Khởi tạo map với các phần tử cho trước
+```go
+studentsAge := map[string]int{
+  "solomon": 19,
+  "john":    20,
+  "janet":   15,
+  "daniel":  16,
+  "mary":    18,
+}
+```
+
+#### Thêm và truy cập phần tử trong map
+```go
+studentsAge := make(map[string]int)
+studentsAge["solomon"] = 19				// Add an element to map
+studentsAge["solomon"] = 20				// Update an element in map
+fmt.Println(studentsAge["solomon"])	// Get an element from map
+```
+
+#### Kiểm tra key có tồn tại trong map không
+```go
+studentsAge := make(map[string]int)
+studentsAge["solomon"] = 19
+
+element, ok := studentsAge["solomon"]
+fmt.Println(element, ok) // 19 true
+
+element, ok = studentsAge["joel"]
+fmt.Println(element, ok) // 0 false
+```
+
+#### Delete key trong map
+```go
+delete(studentsAge, "solomon")
+```
+
+#### Duyệt các phần tử trong map
+```go
+studentsAge := map[string]int{
+		"solomon": 19,
+		"john":    20,
+		"janet":   15,
+		"daniel":  16,
+		"mary":    18,
+	  }
+
+	  for name, age := range studentsAge {
+		fmt.Println(name, age)
+	  }
+```
 
 ## Multithreading
+### Goroutines
+Go không sử dụng multithread truyền thống như Java hay C++, thay vào đó Go sử dụng **goroutines** nhẹ hơn và dễ kiểm soát hơn threads của hệ điều hành. Go runtime lập lịch cho goroutines hiệu quả, giúp chúng có chi phí bộ nhớ và CPU nhẹ hơn rất nhiều so với threads truyền thống.
+
+Để hiểu về cách sử dụng **goroutines** để tăng tốc chương trình, xét ví dụ sau:
+```go
+package main
+
+import (
+	"fmt"
+	"net/http"
+)
+
+func main() {
+	links := []string {
+		"https://www.google.com",
+		"https://www.facebook.com",
+		"https://www.youtube.com",
+		"https://www.amazon.com",
+		"https://www.reddit.com",
+		"https://www.twitter.com",
+		"https://www.instagram.com",
+		"https://www.linkedin.com",
+		"https://www.pinterest.com",
+		"https://netflix.com",
+	}
+
+	for _, link := range links {
+		checkLink(link)
+	}
+}
+
+func checkLink(link string) {
+	_, err := http.Get(link)
+	if err != nil {
+		fmt.Println(link, "might be down!")
+		return
+	}
+	fmt.Println(link, "is up!")
+}
+```
+Chương trình này giúp kiểm tra xem link có đang hoạt động không. Mỗi lần kiểm tra một link bất kỳ, chương trình phải gửi 1 HTTP request đến link đó và phải đợi kết quả phản hồi về. Do đó chương trình sẽ có 1 khoảng thời gian bị treo. Để tối ưu khoảng thời gian bị treo này, với mỗi HTTP request ta sẽ tạo ra 1 goroutine khác để thực hiện request đó.
+
+```go
+package main
+
+import (
+	"fmt"
+	"net/http"
+	"time"
+)
+
+func main() {
+	links := []string {
+		"https://www.google.com",
+		"https://www.facebook.com",
+		"https://www.youtube.com",
+		"https://www.amazon.com",
+		"https://www.reddit.com",
+		"https://www.twitter.com",
+		"https://www.instagram.com",
+		"https://www.linkedin.com",
+		"https://www.pinterest.com",
+		"https://netflix.com",
+	}
+
+	for _, link := range links {
+		go checkLink(link)
+	}
+
+	time.Sleep(2 * time.Second)
+}
+
+func checkLink(link string) {
+	_, err := http.Get(link)
+	if err != nil {
+		fmt.Println(link, "might be down!")
+		return
+	}
+	fmt.Println(link, "is up!")
+}
+```
+
+Ban đầu 1 main routine được khởi tạo để chạy chương trình. Sau mỗi lần gọi đến **go checkLink(link)**, chương trình khởi tạo 1 goroutine mới để chạy chương trình đó.
+
+Lưu ý: **time.Sleep(2 * time.Second)** để tránh main routine kết thúc trước khi các routine khác kết thúc. Nếu không có lệnh này, main routine sẽ kết thúc trước, khi đó toàn bộ chương trình cũng sẽ kết thúc, dù cho vẫn còn các goroutines khác vẫn đang chạy.
+
+### Channels
+Để tránh phải dùng time.Sleep, đồng thời để giao tiếp giữa các goroutine, Go hỗ trợ channels.
+#### Khởi tạo channel mới
+```go
+channel := make(chan TYPE)
+```
+với TYPE là kiểu dữ liệu như int, string, bool, ...
+
+#### Truyền dữ liệu vào channel
+```go
+channel := make(chan int)
+channel <- 5
+```
+
+#### Đợi dữ liệu được truyền vào channel đó và lấy dữ liệu đó ra
+```go
+num <- channel
+```
+
+#### Ví dụ
+```go
+package main
+
+import (
+	"fmt"
+	"net/http"
+)
+
+func main() {
+	links := []string {
+		"https://www.google.com",
+		"https://www.facebook.com",
+		"https://www.youtube.com",
+		"https://www.amazon.com",
+		"https://www.reddit.com",
+		"https://www.twitter.com",
+		"https://www.instagram.com",
+		"https://www.linkedin.com",
+		"https://www.pinterest.com",
+		"https://netflix.com",
+	}
+
+	c := make(chan bool)
+
+	for _, link := range links {
+		go checkLink(link, c)
+	}
+
+	for i := 0; i < len(links); i++ {
+		<-c
+	}
+}
+
+func checkLink(link string, c chan bool) {
+	_, err := http.Get(link)
+	if err != nil {
+		fmt.Println(link, "might be down!")
+		c <- false
+		return
+	}
+	fmt.Println(link, "is up!")
+	c <- true
+}
+```
+Sau khi tạo ra các goroutines để checkLink, ta duyệt thêm 1 vòng for nữa để collect đủ các channel ứng với mỗi link đó.
+
+### Hiệu quả của multithreading
+So sánh thời gian chạy của 2 chương trình:
++ Thời gian chạy của chương trình không có concurrency là **5.165012645s**.
++ Thời gian chạy của chương trình có concurrency là **1.112596957s**.
+
+Nếu tăng số lượng link phải check lên gấp 5 lần:
++ Thời gian chạy của chương trình không có concurrency là **19.54550133s**.
++ Thời gian chạy của chương trình có concurrency là **1.933000974s**.
+
+Do đó, goroutines giúp bỏ qua thời gian chết của chương trình, giúp chương trình tăng tốc lên gấp nhiều lần và hiệu quả hơn nhiều so với không có goroutines. Đây cũng là điểm mạnh nhất của ngôn ngữ Go.
 ## Common packages
+### fmt
+Package fmt dùng để in ra màn hình, giống cout của C++ hay print của Python. Format in giống hệt C++ nhưng đơn giản hơn.
+```go
+package main
+import "fmt"
+
+func main() {
+	fmt.Println("Hello World!")
+}
+```
