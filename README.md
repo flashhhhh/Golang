@@ -1,7 +1,7 @@
 # Golang
 
 ## Lịch sử ra đời
-_ Ý tưởng của ngôn ngữ Go bắt đầu vào năm 2007 tại Google. 3 kỹ sư tại Google: Robert Griesemer, Rob Pike, và Ken Thompson cố gắng tìm ra một ngôn ngữ tại thời điểm đó thỏa mãn 3 điều kiện sau:
+Ý tưởng của ngôn ngữ Go bắt đầu vào năm 2007 tại Google. 3 kỹ sư tại Google: Robert Griesemer, Rob Pike, và Ken Thompson cố gắng tìm ra một ngôn ngữ tại thời điểm đó thỏa mãn 3 điều kiện sau:
 
 - Biên dịch hiệu quả
 - Thực thi hiệu quả
@@ -647,5 +647,59 @@ import "fmt"
 
 func main() {
 	fmt.Println("Hello World!")
+}
+```
+
+### net/http
+Package net/http dùng để tạo ra HTTP server hoặc client.
+```go
+package main
+
+import (
+	"fmt"
+	"net/http"
+)
+
+func main() {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Hello World!")
+	})
+
+	http.ListenAndServe(":8080", nil)
+}
+```
+
+### time
+Package time dùng để xử lý thời gian.
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	fmt.Println("Current time:", time.Now())
+}
+```
+
+### os
+Package os dùng để tương tác với hệ điều hành.
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+)
+
+func main() {
+	hostname, err := os.Hostname()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println("Hostname:", hostname)
 }
 ```
